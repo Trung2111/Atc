@@ -1,0 +1,107 @@
+---
+:source:
+  :path: test
+  :file: test_atc.c
+:successes:
+- :test: test_cat_service_idle_to_parse_prefix
+  :line: 36
+  :message: ''
+  :unity_test_time: 0
+- :test: test_cat_service_error_idle_to_parse_prefix
+  :line: 48
+  :message: ''
+  :unity_test_time: 0
+- :test: test_cat_service_idle_to_parse_command
+  :line: 60
+  :message: ''
+  :unity_test_time: 0
+- :test: test_cat_service_idle_to_parse_command_char
+  :line: 83
+  :message: ''
+  :unity_test_time: 0
+:failures:
+- :test: test_cat_service_idle_to_parse_command_char_found
+  :line: 121
+  :message: Expected 6 Was 5
+  :unity_test_time: 0
+:ignores: []
+:counts:
+  :total: 5
+  :passed: 4
+  :failed: 1
+  :ignored: 0
+:stdout:
+- 'Expected state: 1, Actual state: 1'
+- 'Expected character: A, Actual character: A'
+- 'Expected state: 1, Actual state: -1'
+- 'Expected character: A, Actual character: E'
+- 'After receiving ''A'': State: 1, Expected: 1'
+- 'Character at buffer[0]: A, Expected: ''A'''
+- 'After receiving ''T'': State: 2, Expected: 2'
+- 'Character at buffer[1]: T, Expected: ''T'''
+- 'After receiving A : State: 1'
+- 'After receiving T : State: 2'
+- 'After receiving + : State: 2'
+- 'After receiving T : State: 2'
+- 'After receiving E : State: 2'
+- 'After receiving S : State: 2'
+- 'After receiving T : State: 2'
+- 'After receiving ? : State: 4'
+- "After receiving \r : State: 4"
+- 'After receiving '
+- " : State: 5"
+- 'Received: A, State: 1, Index: 0'
+- index 0
+- cmd_state 0
+- 'Received: T, State: 2, Index: 0'
+- index 0
+- cmd_state 0
+- 'Received: +, State: 2, Index: 0'
+- index 0
+- cmd_state 0
+- 'Received: C, State: 2, Index: 0'
+- index 0
+- cmd_state 0
+- 'Received: M, State: 2, Index: 0'
+- index 0
+- cmd_state 0
+- 'Received: D, State: 2, Index: 0'
+- index 0
+- cmd_state 0
+- 'Received: 5, State: 2, Index: 0'
+- index 0
+- cmd_state 0
+- 'Received: =, State: 5, Index: 0'
+- index 0
+- cmd_state 0
+- Search Command
+- 'Received: 1, State: 5, Index: 1'
+- index 1
+- cmd_state 0
+- Search Command
+- 'Received: 2, State: 5, Index: 2'
+- index 2
+- cmd_state 0
+- Search Command
+- 'Received: 3, State: 5, Index: 3'
+- index 3
+- cmd_state 0
+- Search Command
+- 'Received: '
+- ", State: 5, Index: 4"
+- index 4
+- cmd_state 0
+- 'cmd_list num 6commands_num 6cmd: AT+TEST?'
+- ''
+- 'cmd: AT+CMD2=123'
+- ''
+- 'cmd: AT+CMD3=123'
+- ''
+- 'cmd: AT+CMD4=123'
+- ''
+- 'cmd: AT+CMD5=123'
+- ''
+- 'cmd: AT+CMD6=123'
+- ''
+- partial_cntr 0
+:time: 0.08560489999999987
