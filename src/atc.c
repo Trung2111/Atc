@@ -20,7 +20,7 @@
 ************************************************************************************************************/
 
 // none
-
+uint8_t stt_flag_state_match ;
 /************************************************************************************************************
 **************    Private Functions
 ************************************************************************************************************/
@@ -35,15 +35,16 @@ static void prepare_parse_command(struct cat_object *self);
 static cat_status wait_read_acknowledge(struct cat_object *self);
 static void set_cmd_state(struct cat_object *self, size_t i, uint8_t state);
 static void prepare_search_command(struct cat_object *self);
-static cat_status update_command(struct cat_object *self);
+// static cat_status update_command(struct cat_object *self);
 static int is_valid_cmd_name_char(const char ch);
+static bool is_command_disable(struct cat_object *self, size_t index);
 // static void reset_state(struct cat_object *self);
 // static int read_cmd_char(struct cat_object *self);
 // static void ack_ok(struct cat_object *self);
 static cat_status search_command(struct cat_object *self);
 static struct cat_command const* get_command_by_index(struct cat_object *self, size_t index);
 // static cat_status command_found(struct cat_object *self);
-static uint8_t get_cmd_state(struct cat_object *self, size_t i);
+uint8_t get_cmd_state(struct cat_object *self, size_t i);
 static char to_upper(char ch);
 /***********************************************************************************************************/
 
@@ -74,7 +75,7 @@ static char to_upper(char ch);
 //   // unsolicited_init(self);
 // }
 
-cat_status cat_service(char array_in ,struct cat_object *self)
+cat_status cat_service_get_fsm(char array_in ,struct cat_object *self)
 {
   cat_status s;
   self->current_char = array_in;
@@ -97,10 +98,6 @@ cat_status cat_service(char array_in ,struct cat_object *self)
       s = parse_command(self);
       self->atc_receive[self->count_char_received] = self->current_char;
       self->count_char_received++;
-      while (self-> state == CAT_STATE_UPDATE_COMMAND_STATE)
-      {
-        s = update_command(self);
-      }
       break;
 
     case CAT_STATE_WAIT_READ_ACKNOWLEDGE:
@@ -108,14 +105,38 @@ cat_status cat_service(char array_in ,struct cat_object *self)
       self->atc_receive[self->count_char_received] = self->current_char;
       self->count_char_received++;
       break;
-    
-    case CAT_STATE_SEARCH_COMMAND:
-      s = search_command(self);   
-      printf("Search Command\n");
-      break;
   }
   return s;
 }
+
+cat_status cat_service_search_command(struct cat_object *self) {
+  // Kiểm tra đầu vào
+  if (self == NULL || self->atc_receive == NULL) {
+    return CAT_STATUS_ERROR; 
+  }
+  cat_status status = CAT_STATUS_BUSY; 
+  char *fsm_receive = self->atc_receive;
+
+  // Vòng lặp xử lý danh sách lệnh
+  while (self->index < self->commands_num) {
+    // Gọi hàm xử lý lệnh
+    status = update_command(self);
+    // Kiểm tra trạng thái của lệnh hiện tại
+    if (get_cmd_state(self, self->index) == CAT_CMD_STATE_FULL_MATCH) {
+      self->state = CAT_STATE_COMMAND_FOUND;
+      // return CAT_STATUS_OK; // Đã tìm thấy lệnh khớp
+    }
+    self->index++;
+  }
+  // self->index = 0;
+  // if (status == CAT_STATUS_BUSY) {
+  //   self->state = CAT_STATE_PARSE_COMMAND_CHAR; 
+  // } else {
+  //   self->state = CAT_STATE_ERROR; 
+  // }
+  return status; // Trả về trạng thái cuối cùng
+}
+
 
 // cat_status  cat_service(char array_in ,struct cat_object *self)
 // {
@@ -141,7 +162,7 @@ cat_status cat_service(char array_in ,struct cat_object *self)
 //     break; 
 
 //   case CAT_STATE_IDLE:
-    // s = process_idle_state(self);
+//     s = process_idle_state(self);
 //     self->atc_receive[self->count_char_received] = self->current_char;
 //     self->count_char_received++;
 //     break;
@@ -186,10 +207,7 @@ cat_status cat_service(char array_in ,struct cat_object *self)
 // }
 
 // /************************************** Control Function *****************************************************************/
-// /**
-//  * 
-//  * 
-//  */
+
 // static cat_status error_state(struct cat_object *self)
 // {
 //   // assert(self != NULL);
@@ -261,7 +279,7 @@ static cat_status parse_command(struct cat_object *self)
       self->state = CAT_STATE_SEARCH_COMMAND;
       break;
     }
-    self->state = CAT_STATE_ERROR;
+    // strncpy(get_atcmd_buf(self), "OK", get_atcmd_buf_size(self));
     break;
 
   case '\r':
@@ -272,6 +290,7 @@ static cat_status parse_command(struct cat_object *self)
       self->state = CAT_STATE_ERROR;
       break;
     }
+    // self->length++;
     self->cmd_type = CAT_CMD_TYPE_READ;
     self->state = CAT_STATE_WAIT_READ_ACKNOWLEDGE;
     break;
@@ -280,16 +299,17 @@ static cat_status parse_command(struct cat_object *self)
       self->state = CAT_STATE_ERROR;
       break;
     }
-    self->cmd_type = CAT_CMD_TYPE_WRITE;
+    // self->length++;
     prepare_search_command(self);
+    self->cmd_type = CAT_CMD_TYPE_WRITE;
     self->state = CAT_STATE_SEARCH_COMMAND;
     break;
   default:
-  if (is_valid_cmd_name_char(self->current_char) != 0) {
-    self->length++;
-    self->state = CAT_STATE_UPDATE_COMMAND_STATE;
-    break;
-  }
+    if (is_valid_cmd_name_char(self->current_char) != 0) {
+      self->length++;
+      self->state = CAT_STATE_PARSE_COMMAND_CHAR;
+      break;
+    }
     self->state = CAT_STATE_ERROR;
     break;
   }
@@ -304,32 +324,62 @@ static cat_status parse_command(struct cat_object *self)
  * Cập nhật trạng thái khớp (CAT_CMD_STATE_NOT_MATCH, CAT_CMD_STATE_FULL_MATCH).
  * 
  */
-static cat_status update_command(struct cat_object *self)
-{
-  // lấy lệnh hiện tại từ danh sách lệnh
+char *cmd_name;
+cat_status update_command(struct cat_object *self) {
+  // Lấy lệnh hiện tại từ danh sách lệnh
   struct cat_command const *cmd = get_command_by_index(self, self->index);
-  size_t cmd_name_len;
-  // 
+  cmd_name = cmd->name;
+  size_t cmd_name_len = strlen(cmd->name);
+  // Nếu lệnh hiện tại không bị loại bỏ
   if (get_cmd_state(self, self->index) != CAT_CMD_STATE_NOT_MATCH) {
-    cmd_name_len = strlen(cmd->name);
-    // Người dùng nhập chuỗi dài hơn tên lệnh
+    // Nếu chuỗi nhận lớn hơn tên lệnh -> chắc chắn không khớp
     if (self->length > cmd_name_len) {
       set_cmd_state(self, self->index, CAT_CMD_STATE_NOT_MATCH);
-    // ký tự hiện tại không khớp với ký tự của lệnh
-    } else if (to_upper(cmd->name[self->length - 1]) != self->current_char) {
-      set_cmd_state(self, self->index, CAT_CMD_STATE_NOT_MATCH);
-    // ký tự hiện tại khớp với ký tự của lệnh
-    } else if (self->length == cmd_name_len) {
-      set_cmd_state(self, self->index, CAT_CMD_STATE_FULL_MATCH);
+    } 
+    // Nếu độ dài chuỗi nhận bằng tên lệnh -> kiểm tra khớp hoàn toàn
+    else if (self->length == cmd_name_len) {
+      bool is_match = true;
+      for (size_t j = 0; j < self->length; j++) {
+        if (to_upper(cmd->name[j]) != to_upper(self->atc_receive[j+2])) {
+          is_match = false;
+          break;
+        }
+      }
+      if (is_match) {
+        set_cmd_state(self, self->index, CAT_CMD_STATE_FULL_MATCH);
+        stt_flag_state_match = 1;
+        self->partial_cntr ++;
+      } else {
+        set_cmd_state(self, self->index, CAT_CMD_STATE_NOT_MATCH);
+      }
+    } 
+    // Nếu chuỗi nhận ngắn hơn tên lệnh -> kiểm tra tiền tố
+    else {
+      bool is_partial_match = true;
+      for (size_t j = 0; j < self->length; j++) {
+        if (to_upper(cmd->name[j]) != to_upper(self->atc_receive[j+2])) {
+          is_partial_match = false;
+          break;
+        }
+      }
+      if (is_partial_match) {
+        set_cmd_state(self, self->index, CAT_CMD_STATE_PARTIAL_MATCH);
+        self->state = CAT_STATE_PARSE_COMMAND_CHAR;  // Tiếp tục nhận thêm ký tự
+      } else {
+        set_cmd_state(self, self->index, CAT_CMD_STATE_NOT_MATCH);
+      }
     }
   }
-  else 
-  // Xử lý khi đã kiểm tra hết tất cả các lệnh trong danh sách
-  if (++self->index >= self->commands_num) {
-    self->index = 0;
-    self->state = CAT_STATE_PARSE_COMMAND_CHAR; 
-  }
-  return CAT_STATUS_BUSY;
+
+  // Duyệt qua danh sách lệnh
+  // if (++self->index >= self->commands_num) {
+  //   self->index = 0;  // Đặt lại chỉ số duyệt
+  //   self->state = CAT_STATE_PARSE_COMMAND_CHAR;
+  //   self->cmd_type = CAT_CMD_TYPE_WRITE;
+  //   prepare_search_command(self);
+  // }
+
+  return CAT_STATUS_BUSY;  // Tiếp tục trạng thái BUSY
 }
 
 static cat_status wait_read_acknowledge(struct cat_object *self)
@@ -361,8 +411,8 @@ static cat_status search_command(struct cat_object *self)
         self->state = (self->current_char == '\n') ? CAT_STATE_COMMAND_NOT_FOUND : CAT_STATE_ERROR;
         return CAT_STATUS_BUSY;
       }
-        self->cmd = get_command_by_index(self, self->index);
-        self->partial_cntr++;
+      self->cmd = get_command_by_index(self, self->index);
+      self->partial_cntr++;
   } else if (cmd_state == CAT_CMD_STATE_FULL_MATCH) {
       self->cmd = get_command_by_index(self, self->index);
       self->state = CAT_STATE_COMMAND_FOUND;
@@ -471,7 +521,7 @@ static cat_status search_command(struct cat_object *self)
  * para2: i: chi so lenh trong danh sach
  * return: true neu lenh bi vo hieu hoa, nguoc lai tra ve false
  */
-static uint8_t get_cmd_state(struct cat_object *self, size_t i)
+uint8_t get_cmd_state(struct cat_object *self, size_t i)
 {
   uint8_t s;  
   if (self == NULL || i >= self->commands_num) {
@@ -572,22 +622,21 @@ static void prepare_search_command(struct cat_object *self)
  */
 static struct cat_command const* get_command_by_index(struct cat_object *self, size_t index)
 {
-  // size_t i, j;
-  // struct cat_command_group const *cmd_group;
-  assert(self != NULL);
-  assert(index < self->desc->cmd_list_num);
-  return &self->desc->cmd_list[index];
-  // assert(index < self->commands_num);
-  // j = 0;
-  // for (i = 0; i < self->desc->cmd_group_num; i++) {
-  //   cmd_group = self->desc->cmd_group[i];
-  //   if (index >= j + cmd_group->cmd_num) {
-  //     j += cmd_group->cmd_num;
-  //     continue;
-  //   }
-  //   return &cmd_group->cmd[index - j];
-  // }
-  // return NULL;
+  size_t i, j;
+  struct cat_command_group const *cmd_group;
+
+  j = 0;
+  for (i = 0; i < self->desc->cmd_group_num; i++) {
+    cmd_group = self->desc->cmd_group[i];
+
+    if (index >= j + cmd_group->cmd_num) {
+      j += cmd_group->cmd_num;
+      continue;
+    }
+
+    return &cmd_group->cmd[index - j];
+  }
+  return NULL;
 }
 
 /**
@@ -603,6 +652,11 @@ static void prepare_parse_command(struct cat_object *self)
                 (CAT_CMD_STATE_PARTIAL_MATCH << 6);
   // memset(get_atcmd_buf(self), val, get_atcmd_buf_size(self));
   memset(get_atcmd_buf(self), val, get_atcmd_buf_size(self));
+  // for(int i = 0; i < self->commands_num; i++)
+  // {
+  //   stt_flag_state_match = get_cmd_state(self, i);
+  // }
+  
   self->index = 0;
   self->length = 0;
   self->cmd_type = CAT_CMD_TYPE_RUN;

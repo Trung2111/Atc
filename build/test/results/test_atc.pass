@@ -4,31 +4,31 @@
   :file: test_atc.c
 :successes:
 - :test: test_cat_service_idle_to_parse_prefix
-  :line: 36
+  :line: 57
   :message: ''
   :unity_test_time: 0
 - :test: test_cat_service_error_idle_to_parse_prefix
-  :line: 48
+  :line: 69
   :message: ''
   :unity_test_time: 0
 - :test: test_cat_service_idle_to_parse_command
-  :line: 60
+  :line: 81
   :message: ''
   :unity_test_time: 0
 - :test: test_cat_service_idle_to_parse_command_char
-  :line: 83
+  :line: 104
   :message: ''
   :unity_test_time: 0
-:failures:
 - :test: test_cat_service_idle_to_parse_command_char_found
-  :line: 121
-  :message: Expected 6 Was 5
+  :line: 119
+  :message: ''
   :unity_test_time: 0
+:failures: []
 :ignores: []
 :counts:
   :total: 5
-  :passed: 4
-  :failed: 1
+  :passed: 5
+  :failed: 0
   :ignored: 0
 :stdout:
 - 'Expected state: 1, Actual state: 1'
@@ -50,58 +50,13 @@
 - "After receiving \r : State: 4"
 - 'After receiving '
 - " : State: 5"
-- 'Received: A, State: 1, Index: 0'
-- index 0
-- cmd_state 0
-- 'Received: T, State: 2, Index: 0'
-- index 0
-- cmd_state 0
-- 'Received: +, State: 2, Index: 0'
-- index 0
-- cmd_state 0
-- 'Received: C, State: 2, Index: 0'
-- index 0
-- cmd_state 0
-- 'Received: M, State: 2, Index: 0'
-- index 0
-- cmd_state 0
-- 'Received: D, State: 2, Index: 0'
-- index 0
-- cmd_state 0
-- 'Received: 5, State: 2, Index: 0'
-- index 0
-- cmd_state 0
-- 'Received: =, State: 5, Index: 0'
-- index 0
-- cmd_state 0
-- Search Command
-- 'Received: 1, State: 5, Index: 1'
-- index 1
-- cmd_state 0
-- Search Command
-- 'Received: 2, State: 5, Index: 2'
-- index 2
-- cmd_state 0
-- Search Command
-- 'Received: 3, State: 5, Index: 3'
-- index 3
-- cmd_state 0
-- Search Command
+- 'Received: A, State: 1, lenght: 0'
+- 'Received: T, State: 2, lenght: 0'
+- 'Received: +, State: 2, lenght: 1'
+- 'Received: C, State: 2, lenght: 2'
+- 'Received: M, State: 2, lenght: 3'
+- 'Received: D, State: 2, lenght: 4'
+- 'Received: 3, State: 2, lenght: 5'
 - 'Received: '
-- ", State: 5, Index: 4"
-- index 4
-- cmd_state 0
-- 'cmd_list num 6commands_num 6cmd: AT+TEST?'
-- ''
-- 'cmd: AT+CMD2=123'
-- ''
-- 'cmd: AT+CMD3=123'
-- ''
-- 'cmd: AT+CMD4=123'
-- ''
-- 'cmd: AT+CMD5=123'
-- ''
-- 'cmd: AT+CMD6=123'
-- ''
-- partial_cntr 0
-:time: 0.08560489999999987
+- ", State: 5, lenght: 5"
+:time: 0.05490700000154902

@@ -103,13 +103,13 @@ typedef enum {
 
 /* structure with at command descriptor */
 struct cat_command {
-    const char *name; /* at command name (case-insensitivity) */
+    char *name; /* at command name (case-insensitivity) */
     const char *description; /* at command description (optionally - can be null) */
 
-    cat_cmd_write_handler write; /* write command handler */
-    cat_cmd_read_handler read; /* read command handler */
-    cat_cmd_run_handler run; /* run command handler */
-    cat_cmd_test_handler test; /* test command handler */
+    // cat_cmd_write_handler write; /* write command handler */
+    // cat_cmd_read_handler read; /* read command handler */
+    // cat_cmd_run_handler run; /* run command handler */
+    // cat_cmd_test_handler test; /* test command handler */
 
     struct cat_variable const *var; /* pointer to array of variables assiocated with this command */
     size_t var_num; /* number of variables in array */
@@ -143,11 +143,11 @@ struct cat_descriptor {
     size_t unsolicited_buf_size; /* unsolicited working buffer length */
 };
 
-/* strcuture with unsolicited command buffered infos */
-struct cat_unsolicited_cmd {
-    struct cat_command const *cmd; /* pointer to commands used to unsolicited event */
-    cat_cmd_type type; /* type of unsolicited event */
-};
+// /* strcuture with unsolicited command buffered infos */
+// struct cat_unsolicited_cmd {
+//     struct cat_command const *cmd; /* pointer to commands used to unsolicited event */
+//     cat_cmd_type type; /* type of unsolicited event */
+// };
 
 /* enum type with type of command request */
 typedef enum {
@@ -198,8 +198,13 @@ struct cat_object {
 /************************************************************************************************************
 **************    Public Functions
 ************************************************************************************************************/
+extern uint8_t stt_flag_state_match ;
+extern char *cmd_name;
 extern uint8_t cmd_state;
-cat_status  cat_service(char array_in ,struct cat_object *self);
+cat_status  cat_service_get_fsm(char array_in ,struct cat_object *self);
+cat_status cat_service_search_command(struct cat_object *self);
+cat_status update_command(struct cat_object *self);
+uint8_t get_cmd_state(struct cat_object *self, size_t i);
 // void cat_init(struct cat_object *self, const struct cat_descriptor *desc, const struct cat_io_interface *io);
 // struct cat_command const* get_command_by_index(struct cat_object *self, size_t index);
 // uint8_t  get_cmd_state(struct cat_object *self, size_t i);

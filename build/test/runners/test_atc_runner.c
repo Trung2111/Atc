@@ -82,11 +82,11 @@ static void run_test(UnityTestFunction func, const char* name, UNITY_LINE_TYPE l
 int main(void)
 {
   UnityBegin("test_atc.c");
-  run_test(test_cat_service_idle_to_parse_prefix, "test_cat_service_idle_to_parse_prefix", 36);
-  run_test(test_cat_service_error_idle_to_parse_prefix, "test_cat_service_error_idle_to_parse_prefix", 48);
-  run_test(test_cat_service_idle_to_parse_command, "test_cat_service_idle_to_parse_command", 60);
-  run_test(test_cat_service_idle_to_parse_command_char, "test_cat_service_idle_to_parse_command_char", 83);
-  run_test(test_cat_service_idle_to_parse_command_char_found, "test_cat_service_idle_to_parse_command_char_found", 98);
+  run_test(test_cat_service_idle_to_parse_prefix, "test_cat_service_idle_to_parse_prefix", 57);
+  run_test(test_cat_service_error_idle_to_parse_prefix, "test_cat_service_error_idle_to_parse_prefix", 69);
+  run_test(test_cat_service_idle_to_parse_command, "test_cat_service_idle_to_parse_command", 81);
+  run_test(test_cat_service_idle_to_parse_command_char, "test_cat_service_idle_to_parse_command_char", 104);
+  run_test(test_cat_service_idle_to_parse_command_char_found, "test_cat_service_idle_to_parse_command_char_found", 119);
 
   return UnityEnd();
 }
