@@ -288,7 +288,7 @@ void test_cat_service_idle_to_parse_command_char_found(void){
 
 
 
-    UnityAssertEqualNumber((UNITY_INT)((7)), (UNITY_INT)((test_parser.index)), (
+    UnityAssertEqualNumber((UNITY_INT)((8)), (UNITY_INT)((test_parser.index)), (
 
    ((void *)0)
 

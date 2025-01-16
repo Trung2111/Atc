@@ -154,7 +154,7 @@ void test_cat_service_idle_to_parse_command_char_found(void){
         // printf("Received: %c, State: %ld, Index: %d\n", test_parser.state,  test_parser.index);
         // printf("test_prase lenght %ld, command_num %ld\n", test_parser.length, test_parser.commands_num);
         // printf("Index :%ld - stt_flag_state_match %d\n\n",test_parser.index, stt_flag_state_match);
-    TEST_ASSERT_EQUAL(7, test_parser.index); // Kiểm tra state
+    TEST_ASSERT_EQUAL(8, test_parser.index); // Kiểm tra state
     
     TEST_ASSERT_EQUAL(CAT_STATE_COMMAND_FOUND, test_parser.state); // Kiểm tra state
     TEST_ASSERT_EQUAL(CAT_STATUS_BUSY, status); // Hàm phải trả về CAT_STATUS_BUSY
